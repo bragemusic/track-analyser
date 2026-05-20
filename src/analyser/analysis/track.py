@@ -18,22 +18,13 @@ class TrackAnalysisResults(BaseModel):
     mood_aggresive: float
     mood_calm: float
 
-# def bar(value, width=24):
-#     value = max(0.0, min(1.0, float(value)))
-#     filled = int(round(value * width))
-#     return "█" * filled + "░" * (width - filled)
 
 def run(filename: str) -> TrackAnalysisResults:
-    # filename = "/home/lucas/dev/brage/data/music/4b82cca3-8c6a-4071-8042-fc6df2dcca52.flac"
-    # # filename = "/home/lucas/dev/brage/data/music/436ad421-e439-41be-b98b-b6f30a0b256c.flac"
-    # filename = "/home/lucas/dev/brage/data/music/76ff658f-6c13-4157-906f-780cc8759048.flac"
-
     audio = essentia.standard.MonoLoader(filename=filename)()
 
     # -------------------------
     # Core analysis
     # -------------------------
-    # duration = len(audio) / 44100.0
 
     rhythm = essentia.standard.RhythmExtractor2013(method="multifeature")
     bpm, beats, beat_confidence, _, _ = rhythm(audio)
@@ -68,7 +59,6 @@ def run(filename: str) -> TrackAnalysisResults:
         flatnesses.append(flatness(spec))
 
     avg_centroid = np.mean(centroids)
-    # avg_rolloff = np.mean(rolloffs)
     avg_flatness = np.mean(flatnesses)
 
     brightness = min(avg_centroid / 5000.0, 1.0)
@@ -112,47 +102,6 @@ def run(filename: str) -> TrackAnalysisResults:
     sad = min(max(sad, 0), 1)
     aggressive = min(max(aggressive, 0), 1)
     calm = min(max(calm, 0), 1)
-
-    # # -------------------------
-    # # Output
-    # # -------------------------
-    # print()
-    # print("🎵 TRACK ANALYSIS")
-    # print("=" * 56)
-    # print(f"File         : {filename}")
-    # print(f"Duration     : {duration:6.1f} sec")
-    # print(f"BPM          : {bpm:6.2f}")
-    # print(f"Key          : {key} {scale} (confidence {key_strength:.2f})")
-    # print(f"Loudness     : {loudness:6.2f}")
-    # print()
-
-    # print("📊 CORE METRICS")
-    # print("-" * 56)
-    # print(f"Energy       [{bar(min(rms * 3,1))}] {min(rms * 3,1):.2f}")
-    # print(f"Danceability [{bar(danceability)}] {danceability:.2f}")
-    # print(f"Brightness   [{bar(brightness)}] {brightness:.2f}")
-    # print(f"Beat Conf    [{bar(min(beat_confidence,1))}] {beat_confidence:.2f}")
-    # print()
-
-    # print("😊 MOOD ESTIMATE")
-    # print("-" * 56)
-    # print(f"Happy        [{bar(happy)}] {happy:.2f}")
-    # print(f"Sad          [{bar(sad)}] {sad:.2f}")
-    # print(f"Aggressive   [{bar(aggressive)}] {aggressive:.2f}")
-    # print(f"Calm         [{bar(calm)}] {calm:.2f}")
-
-    # moods = {
-    #     "Happy": happy,
-    #     "Sad": sad,
-    #     "Aggressive": aggressive,
-    #     "Calm": calm
-    # }
-
-    # primary = max(moods, key=moods.get)
-
-    # print()
-    # print(f"🎭 Primary Mood: {primary}")
-    # print()
 
     return TrackAnalysisResults(
         bpm=int(round(bpm)),
