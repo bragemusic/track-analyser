@@ -6,17 +6,24 @@ import logging
 import tempfile
 import os
 import shutil
+import structlog
 
 from analysis import run as track_run
 
 app = FastAPI()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+structlog.configure(
+    processors=[
+        structlog.processors.TimeStamper(fmt="iso", key="time"),
+        structlog.processors.add_log_level,
+        structlog.processors.EventRenamer("msg"),
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.JSONRenderer(),
+    ],
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+    logger_factory=structlog.PrintLoggerFactory(),
 )
-
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 run_lock = asyncio.Lock()
 
@@ -25,7 +32,6 @@ run_lock = asyncio.Lock()
 
 @app.get("/healthz")
 async def healthz():
-    logger.info("hej hej")
     return "I'm alive!"
 
 @app.post("/run")
@@ -36,10 +42,11 @@ async def run(file: UploadFile):
     if file.filename is None:
         raise HTTPException(400, "No filename")
 
+    filename = os.path.basename(file.filename)
     temp_dir = tempfile.mkdtemp(prefix="brage_analyser_upload_")
-    temp_path = os.path.join(temp_dir, file.filename)
+    temp_path = os.path.join(temp_dir, filename)
 
-    logger.info("recieved file %s" % file.filename)
+    logger.info("recieved file %s" % filename)
     async with run_lock:
         try:
             with open(temp_path, "wb") as f:
@@ -55,6 +62,7 @@ async def run(file: UploadFile):
             return result
 
         except Exception as e:
+            logger.error("could not analyse file", filename=filename, error=e.__str__())
             raise HTTPException(500, e.__str__())
         finally:
             await file.close()
