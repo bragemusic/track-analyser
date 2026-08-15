@@ -1,7 +1,7 @@
 [project]
 name = "track-analyser"
 version = "0.1.0"
-description = "Add your description here"
+description = "Track analyser to be used in the Brage Music stack."
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
