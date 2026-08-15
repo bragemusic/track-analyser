@@ -24,6 +24,6 @@ jobs:
       - name: Build, Tag and Push Image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build --build-arg -f Dockerfile -t ${GHCR_FULL_NAME} -t ghcr.io/${{ github.repository }}:latest .
+          docker build -f Dockerfile -t ${GHCR_FULL_NAME} -t ghcr.io/${{ github.repository }}:latest .
           docker push ${GHCR_FULL_NAME}
           docker push ghcr.io/${{ github.repository }}:latest
